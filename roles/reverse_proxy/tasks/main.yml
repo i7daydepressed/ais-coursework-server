@@ -1,0 +1,28 @@
+---
+- name: Install Nginx
+  ansible.builtin.dnf:
+    name: nginx
+    state: present
+
+- name: Copy Nginx reverse proxy config
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/conf.d/ais-coursework.conf
+    mode: '0644'
+
+- name: Allow Nginx to connect to upstream services under SELinux
+  ansible.builtin.command:
+    cmd: setsebool -P httpd_can_network_connect 1
+  changed_when: false
+  failed_when: false
+
+- name: Test Nginx configuration
+  ansible.builtin.command:
+    cmd: nginx -t
+  changed_when: false
+
+- name: Enable and start Nginx
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: true
+    state: restarted

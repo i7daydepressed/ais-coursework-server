@@ -1,0 +1,39 @@
+---
+- name: Copy docker-compose template
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /opt/ais-coursework/docker-compose.yml
+    mode: '0644'
+
+- name: Copy environment file
+  ansible.builtin.template:
+    src: env.j2
+    dest: /opt/ais-coursework/.env
+    mode: '0600'
+
+- name: Copy environment example file
+  ansible.builtin.template:
+    src: env.example.j2
+    dest: /opt/ais-coursework/.env.example
+    mode: '0644'
+
+- name: Start application containers
+  ansible.builtin.command:
+    cmd: docker compose up -d
+    chdir: /opt/ais-coursework
+  register: compose_up
+
+- name: Show docker compose up result
+  ansible.builtin.debug:
+    var: compose_up.stdout_lines
+
+- name: Check containers status
+  ansible.builtin.command:
+    cmd: docker compose ps
+    chdir: /opt/ais-coursework
+  register: compose_ps
+  changed_when: false
+
+- name: Show containers status
+  ansible.builtin.debug:
+    var: compose_ps.stdout_lines

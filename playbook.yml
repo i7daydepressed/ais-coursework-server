@@ -1,0 +1,12 @@
+---
+- name: Configure AIS coursework server
+  hosts: server
+  become: true
+  gather_facts: false
+
+  roles:
+    - common
+    - docker
+    - reverse_proxy
+    - services
+    - backup

@@ -1,0 +1,59 @@
+services:
+  glpi-db:
+    image: mariadb:11
+    container_name: ais-glpi-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${GLPI_DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${GLPI_DB_NAME}
+      MARIADB_USER: ${GLPI_DB_USER}
+      MARIADB_PASSWORD: ${GLPI_DB_PASSWORD}
+    volumes:
+      - ./data/mariadb/glpi:/var/lib/mysql:Z
+
+  glpi:
+    image: glpi/glpi:latest
+    container_name: ais-glpi
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - glpi-db
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./data/glpi:/var/glpi:Z
+
+  bookstack-db:
+    image: mariadb:11
+    container_name: ais-bookstack-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${BOOKSTACK_DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${BOOKSTACK_DB_DATABASE}
+      MARIADB_USER: ${BOOKSTACK_DB_USERNAME}
+      MARIADB_PASSWORD: ${BOOKSTACK_DB_PASSWORD}
+    volumes:
+      - ./data/mariadb/bookstack:/var/lib/mysql:Z
+
+  bookstack:
+    image: lscr.io/linuxserver/bookstack:latest
+    container_name: ais-bookstack
+    restart: unless-stopped
+    depends_on:
+      - bookstack-db
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+      APP_URL: ${APP_URL}
+      APP_KEY: ${APP_KEY}
+      DB_HOST: ${BOOKSTACK_DB_HOST}
+      DB_PORT: ${BOOKSTACK_DB_PORT}
+      DB_DATABASE: ${BOOKSTACK_DB_DATABASE}
+      DB_USERNAME: ${BOOKSTACK_DB_USERNAME}
+      DB_PASSWORD: ${BOOKSTACK_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:8081:80"
+    volumes:
+      - ./data/bookstack:/config:Z

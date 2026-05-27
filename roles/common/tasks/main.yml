@@ -1,0 +1,98 @@
+---
+- name: Install base packages
+  ansible.builtin.dnf:
+    name:
+      - git
+      - curl
+      - vim
+      - tar
+      - unzip
+      - firewalld
+    state: present
+
+- name: Enable and start firewalld
+  ansible.builtin.systemd:
+    name: firewalld
+    enabled: true
+    state: started
+
+- name: Open HTTP port for GLPI via Nginx
+  ansible.builtin.command:
+    cmd: firewall-cmd --permanent --add-port=80/tcp
+  register: open_nginx_glpi_port
+  changed_when: "'success' in open_nginx_glpi_port.stdout"
+
+- name: Open HTTP port for BookStack via Nginx
+  ansible.builtin.command:
+    cmd: firewall-cmd --permanent --add-port=81/tcp
+  register: open_nginx_bookstack_port
+  changed_when: "'success' in open_nginx_bookstack_port.stdout"
+
+- name: Close direct GLPI container port
+  ansible.builtin.shell:
+    cmd: firewall-cmd --permanent --remove-port=8080/tcp || true
+  changed_when: false
+
+- name: Close direct BookStack container port
+  ansible.builtin.shell:
+    cmd: firewall-cmd --permanent --remove-port=8081/tcp || true
+  changed_when: false
+
+- name: Reload firewalld
+  ansible.builtin.command:
+    cmd: firewall-cmd --reload
+  changed_when: false
+
+- name: Create main project directory
+  ansible.builtin.file:
+    path: /opt/ais-coursework
+    state: directory
+    mode: '0755'
+
+- name: Create data directory
+  ansible.builtin.file:
+    path: /opt/ais-coursework/data
+    state: directory
+    mode: '0755'
+
+- name: Create GLPI data directory
+  ansible.builtin.file:
+    path: /opt/ais-coursework/data/glpi
+    state: directory
+    mode: '0777'
+
+- name: Create BookStack data directory
+  ansible.builtin.file:
+    path: /opt/ais-coursework/data/bookstack
+    state: directory
+    mode: '0777'
+
+- name: Create MariaDB data directory
+  ansible.builtin.file:
+    path: /opt/ais-coursework/data/mariadb
+    state: directory
+    mode: '0755'
+
+- name: Create GLPI MariaDB data directory
+  ansible.builtin.file:
+    path: /opt/ais-coursework/data/mariadb/glpi
+    state: directory
+    mode: '0755'
+
+- name: Create BookStack MariaDB data directory
+  ansible.builtin.file:
+    path: /opt/ais-coursework/data/mariadb/bookstack
+    state: directory
+    mode: '0755'
+
+- name: Create backups directory
+  ansible.builtin.file:
+    path: /opt/ais-coursework/backups
+    state: directory
+    mode: '0750'
+
+- name: Create scripts directory
+  ansible.builtin.file:
+    path: /opt/ais-coursework/scripts
+    state: directory
+    mode: '0755'
