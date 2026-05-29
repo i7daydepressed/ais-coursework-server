@@ -1,28 +1,71 @@
 ---
-- name: Install Nginx
+- name: Install Nginx and SELinux tools
   ansible.builtin.dnf:
-    name: nginx
+    name:
+      - nginx
+      - policycoreutils
     state: present
 
-- name: Copy Nginx reverse proxy config
+- name: Copy main Nginx configuration without default server
+  ansible.builtin.template:
+    src: nginx-main.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: '0644'
+  notify: Reload nginx
+
+- name: Copy AIS coursework reverse proxy configuration
   ansible.builtin.template:
     src: nginx.conf.j2
     dest: /etc/nginx/conf.d/ais-coursework.conf
     mode: '0644'
+  notify: Reload nginx
 
-- name: Allow Nginx to connect to upstream services under SELinux
-  ansible.builtin.command:
-    cmd: setsebool -P httpd_can_network_connect 1
+- name: Check SELinux status
+  ansible.builtin.command: getenforce
+  register: selinux_status
   changed_when: false
   failed_when: false
 
-- name: Test Nginx configuration
-  ansible.builtin.command:
-    cmd: nginx -t
+- name: Allow Nginx to connect to local upstream services
+  ansible.builtin.command: setsebool -P httpd_can_network_connect on
+  when: selinux_status.stdout in ["Enforcing", "Permissive"]
+  changed_when: false
+
+- name: Check firewalld port 80/tcp
+  ansible.builtin.command: firewall-cmd --permanent --query-port=80/tcp
+  register: fw_port_80
+  changed_when: false
+  failed_when: false
+
+- name: Open HTTP port for GLPI
+  ansible.builtin.command: firewall-cmd --permanent --add-port=80/tcp
+  when: fw_port_80.rc != 0
+  register: add_port_80
+  changed_when: true
+
+- name: Check firewalld port 81/tcp
+  ansible.builtin.command: firewall-cmd --permanent --query-port=81/tcp
+  register: fw_port_81
+  changed_when: false
+  failed_when: false
+
+- name: Open HTTP port for BookStack
+  ansible.builtin.command: firewall-cmd --permanent --add-port=81/tcp
+  when: fw_port_81.rc != 0
+  register: add_port_81
+  changed_when: true
+
+- name: Reload firewalld
+  ansible.builtin.command: firewall-cmd --reload
+  when: add_port_80 is changed or add_port_81 is changed
   changed_when: false
 
 - name: Enable and start Nginx
   ansible.builtin.systemd:
     name: nginx
     enabled: true
-    state: restarted
+    state: started
+
+- name: Validate Nginx configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false

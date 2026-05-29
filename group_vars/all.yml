@@ -1,0 +1,10 @@
+---
+project_dir: /opt/ais-coursework
+
+glpi_public_port: 80
+bookstack_public_port: 81
+
+glpi_local_port: 8080
+bookstack_local_port: 8081
+
+server_ip: "127.0.0.1"

@@ -20,7 +20,7 @@ services:
     depends_on:
       - glpi-db
     ports:
-      - "127.0.0.1:8080:80"
+      - "127.0.0.1:{{ glpi_local_port }}:80"
     volumes:
       - ./data/glpi:/var/glpi:Z
 
@@ -54,6 +54,6 @@ services:
       DB_USERNAME: ${BOOKSTACK_DB_USERNAME}
       DB_PASSWORD: ${BOOKSTACK_DB_PASSWORD}
     ports:
-      - "127.0.0.1:8081:80"
+      - "127.0.0.1:{{ bookstack_local_port }}:80"
     volumes:
       - ./data/bookstack:/config:Z
