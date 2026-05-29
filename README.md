@@ -14,6 +14,8 @@
 - учёт компьютерного оборудования и периферии;
 - ведение базы знаний с инструкциями и регламентами.
 
+---
+
 ## Состав серверной конфигурации
 
 - GLPI - обработка заявок и учёт оборудования;
@@ -24,6 +26,7 @@
 - Ansible - автоматизация установки и настройки;
 - Bash-скрипты - резервное копирование и восстановление.
 
+---
 
 ## Запуск (Make-pipeline, clone, download)
 
@@ -43,7 +46,7 @@ cd ais-coursework-server
 Проверить синтаксис Ansible playbook:
 
 ```bash
-bash make syntax
+make syntax
 ```
 
 Запустить развертывание:
@@ -96,18 +99,7 @@ make restore
 
 ---
 
-
-## Проверка состояния сервисов
-
-```bash
-sudo docker compose -f /opt/ais-coursework/docker-compose.yml ps
-sudo systemctl status nginx --no-pager
-sudo nginx -t
-sudo firewall-cmd --list-ports
-sudo ss -tulpn | grep -E ':80|:81|:8080|:8081'
-```
-
-## Доступ к web-интерфейсам
+## Доступ к web интерфейсам
 
 После успешного выполнения make start адреса будут выведены автоматически.
 
